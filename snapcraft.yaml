@@ -16,10 +16,31 @@ issues: https://github.com/nametake/golangci-lint-langserver/issues
 apps:
   golangci-lint-langserver:
     command: bin/golangci-lint-langserver
+    plugs: [home, network]
+    environment:
+      PATH: $SNAP/usr/bin:$PATH
+      GOCACHE: $SNAP_USER_COMMON/.cache/go-build
+      GOPATH: $SNAP_USER_COMMON/go
+  golangci-lint:
+    command: bin/golangci-lint
+  go:
+    command: usr/bin/go
 
 parts:
   golangci-lint-langserver:
     plugin: go
     source: https://github.com/nametake/golangci-lint-langserver.git
     source-tag: v0.0.11
-    build-snaps: [go/latest/stable]
+    build-packages:
+      - golang-go
+    stage-packages:
+      - golang-go
+    after: [golangci-lint]
+
+  golangci-lint:
+    plugin: nil
+    stage-snaps: [golangci-lint]
+    organize:
+      golangci-lint: bin/golangci-lint
+    prime:
+      - bin/golangci-lint
