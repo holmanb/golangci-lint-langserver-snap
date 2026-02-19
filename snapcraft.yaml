@@ -1,0 +1,25 @@
+name: golangci-lint-langserver
+version: 2026.01.17 
+title: golangci-lint language server
+summary: Language Server for golangci-lint
+description: |
+  A Language Server Protocol server for Go, using golangci-lint.
+contact: brett.holman@canonical.com
+license: MIT
+base: core24
+grade: stable
+confinement: strict
+website: https://github.com/nametake/golangci-lint-langserver
+source-code: https://github.com/nametake/golangci-lint-langserver
+issues: https://github.com/nametake/golangci-lint-langserver/issues
+
+apps:
+  golangci-lint-langserver:
+    command: bin/golangci-lint-langserver
+
+parts:
+  golangci-lint-langserver:
+    plugin: go
+    source: https://github.com/nametake/golangci-lint-langserver.git
+    source-tag: v0.0.11
+    build-snaps: [go/latest/stable]

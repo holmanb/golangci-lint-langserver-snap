@@ -1,0 +1,61 @@
+name: 'cron: build and publish to edge'
+on:
+  schedule:
+    - cron: '0 0 * * 0'
+  workflow_dispatch:
+
+jobs:
+  check-for-release:
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.eval.outputs.run }}
+      new_release: ${{ steps.eval.outputs.release }}
+      old_release: ${{ env.RELEASE }}
+    env:
+      OWNER: nametake
+      PROJECT: golangci-lint-langserver
+      RELEASE: v0.0.11
+    steps:
+      - name: Get latest release from ${{ env.OWNER }}/${{ env.PROJECT }}, previously ${{ env.RELEASE }}.
+        id: get_latest
+        run: |
+          set -e
+          LATEST_TAG=$(curl -s https://api.github.com/repos/${{ env.OWNER }}/${{ env.PROJECT }}/releases/latest | jq -r .tag_name)
+          if [ "v${{ env.RELEASE }}" = "$LATEST_TAG" ]; then
+            echo "run=false" >> $GITHUB_OUTPUT
+            echo "no new releases: $LATEST_TAG"
+          else
+            echo "run=true" >> $GITHUB_OUTPUT
+            echo "new release: $LATEST_TAG"
+          fi
+          echo "release=$LATEST_TAG" >> $GITHUB_OUTPUT
+            
+  build-and-publish:
+    if: needs.check-logic.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v6
+    - name: Update version
+      run: |
+        sed -i "s/${{needs.check-logic.outputs.old_release}}/${{needs.check-logic.outputs.new_release}}/g" snapcraft.yaml
+    - name: Build snap
+      uses: snapcore/action-build@v1
+      id: build-snap
+    - name: Install snap
+      run: sudo snap install --dangerous ${{ steps.build-snap.outputs.snap }}
+    - name: Upload snap
+      uses: actions/upload-artifact@v6
+      with:
+        path: ${{ steps.build-snap.outputs.snap }}
+    - name: Publish snap
+      uses: snapcore/action-publish@v1
+      env:
+        SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_LOGIN }}
+      with:
+        snap: ${{ steps.build-snap.outputs.snap }}
+        release: edge
+    - name: Trigger inbox message
+      run: |
+        echo "published to edge"
+        echo "new release is available: ${{ needs.check-for-release.outputs.new_release }}"
