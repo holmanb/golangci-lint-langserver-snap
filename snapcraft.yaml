@@ -1,5 +1,5 @@
 name: golangci-lint-langserver
-version: 2026.01.17 
+version: v0.0.12
 title: golangci-lint language server
 summary: Language Server for golangci-lint
 description: |
@@ -30,7 +30,7 @@ parts:
   golangci-lint-langserver:
     plugin: go
     source: https://github.com/nametake/golangci-lint-langserver.git
-    source-tag: v0.0.11
+    source-tag: v0.0.12
     build-packages:
       - golang-go
     stage-packages:

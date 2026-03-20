@@ -14,7 +14,7 @@ jobs:
     env:
       OWNER: nametake
       PROJECT: golangci-lint-langserver
-      RELEASE: v0.0.11
+      RELEASE: v0.0.12
     steps:
       - name: Get latest release from ${{ env.OWNER }}/${{ env.PROJECT }}, previously ${{ env.RELEASE }}.
         id: get_latest
@@ -29,7 +29,7 @@ jobs:
             echo "new release: $LATEST_TAG"
           fi
           echo "release=$LATEST_TAG" >> $GITHUB_OUTPUT
-            
+
   build-and-publish:
     if: needs.check-logic.outputs.should_run == 'true'
     runs-on: ubuntu-latest
